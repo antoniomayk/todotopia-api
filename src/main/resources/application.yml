@@ -1,7 +1,27 @@
 micronaut:
   application:
     name: todotopiaApi
+
 netty:
   default:
     allocator:
       max-order: 3
+
+datasources:
+  default:
+    db-type: postgresql
+    dialect: POSTGRES
+    driverClassName: org.postgresql.Driver
+    schema-generate: none
+    url: jdbc:postgresql://localhost:5432/todotopia
+    username: admin
+    password: password
+
+jpa:
+  default:
+    properties:
+
+flyway:
+  datasources:
+    default:
+      enabled: true

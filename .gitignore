@@ -5,6 +5,16 @@
 # Log file
 *.log
 
+# Logback
+logs/
+logs-test/
+
+logback-test.xml
+
+# SonarLint
+
+.idea/**/sonarlint/
+
 # BlueJ files
 *.ctxt
 

@@ -1,0 +1,4 @@
+datasources:
+  default:
+    url: jdbc:tc:postgresql:14:///todotopia-test
+    driverClassName: org.testcontainers.jdbc.ContainerDatabaseDriver
