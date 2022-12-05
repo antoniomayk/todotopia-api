@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import dev.antoniomayk.todotopia.api.common.constant.UserMessageCode;
 import dev.antoniomayk.todotopia.api.common.dto.UserDTO;
+import dev.antoniomayk.todotopia.api.security.constant.SecurityExceptionMessageCode;
 import io.micronaut.context.MessageSource;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
@@ -13,6 +14,8 @@ import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.http.hateoas.GenericResource;
 import io.micronaut.http.hateoas.JsonError;
 import io.micronaut.reactor.http.client.ReactorHttpClient;
+import io.micronaut.security.authentication.UsernamePasswordCredentials;
+import io.micronaut.security.token.jwt.render.BearerAccessRefreshToken;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -61,6 +64,28 @@ class AuthControllerTest {
                             .extracting(resource -> ((GenericResource) resource).getAdditionalProperties().get("message")).asInstanceOf(InstanceOfAssertFactories.STRING)
                             .isEqualTo(message);
                 }).verify();
+    }
+
+    void assertUnauthorizedSignIn(String message, UsernamePasswordCredentials usernamePasswordCredentials) {
+        StepVerifier.create(client.exchange(HttpRequest.POST("sign-in", usernamePasswordCredentials), BearerAccessRefreshToken.class))
+                .expectErrorSatisfies(throwable -> {
+                    final var responseException = (HttpClientResponseException) throwable;
+                    final var response = responseException.getResponse();
+                    assertThat(response.getStatus().getCode()).isEqualTo(HttpStatus.UNAUTHORIZED.getCode());
+                    assertThat(response.getBody(JsonError.class)).get()
+                            .extracting(JsonError::getMessage)
+                            .isEqualTo(message);
+                }).verify();
+    }
+
+    void assertTokenSignIn(UsernamePasswordCredentials usernamePasswordCredentials) {
+        StepVerifier.create(client.exchange(HttpRequest.POST("sign-in", usernamePasswordCredentials), BearerAccessRefreshToken.class))
+                .consumeNextWith(response -> {
+                    assertThat(response.getStatus().getCode()).isEqualTo(HttpStatus.OK.getCode());
+                    final var bearerAccessRefreshToken = response.body();
+                    assertThat(bearerAccessRefreshToken).isNotNull();
+                    assertThat(bearerAccessRefreshToken).isNotNull().extracting(BearerAccessRefreshToken::getAccessToken).isNotNull();
+                }).verifyComplete();
     }
 
     @ParameterizedTest
@@ -166,6 +191,47 @@ class AuthControllerTest {
                 .passwordConfirmation(password2)
                 .build();
         assertErrorMessage(HttpStatus.INTERNAL_SERVER_ERROR, message, userDTO2);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "shouldReturnUnauthorizedWhenEmailIsIncorrect.csv", numLinesToSkip = 1)
+    void shouldReturnUnauthorizedWhenEmailIsNotRegistered(String email, String password) throws JsonProcessingException {
+        final var userDTO = UserDTO.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirmation(password)
+                .build();
+        assertUserCreated(userDTO);
+        final var message = messageSource.getMessage(SecurityExceptionMessageCode.EMAIL_OR_PASSWORD_INCORRECT, Locale.getDefault()).orElseThrow();
+        final var usernamePasswordCredentials = new UsernamePasswordCredentials("emailnotregistered@nonvalid.com", password);
+        assertUnauthorizedSignIn(message, usernamePasswordCredentials);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "shouldReturnUnauthorizedWhenPasswordIsIncorrect.csv", numLinesToSkip = 1)
+    void shouldReturnUnauthorizedWhenPasswordIsIncorrect(String email, String password) throws JsonProcessingException {
+        final var userDTO = UserDTO.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirmation(password)
+                .build();
+        assertUserCreated(userDTO);
+        final var message = messageSource.getMessage(SecurityExceptionMessageCode.EMAIL_OR_PASSWORD_INCORRECT, Locale.getDefault()).orElseThrow();
+        final var usernamePasswordCredentials = new UsernamePasswordCredentials(email, "non_valid_password");
+        assertUnauthorizedSignIn(message, usernamePasswordCredentials);
+    }
+
+    @ParameterizedTest
+    @CsvFileSource(resources = "shouldReturnSignInWhenEmailAndPasswordIsCorrect.csv", numLinesToSkip = 1)
+    void shouldReturnTokenWhenEmailAndPasswordIsCorrect(String email, String password) throws JsonProcessingException {
+        final var userDTO = UserDTO.builder()
+                .email(email)
+                .password(password)
+                .passwordConfirmation(password)
+                .build();
+        assertUserCreated(userDTO);
+        final var usernamePasswordCredentials = new UsernamePasswordCredentials(email, password);
+        assertTokenSignIn(usernamePasswordCredentials);
     }
 
 }

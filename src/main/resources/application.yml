@@ -1,6 +1,31 @@
 micronaut:
   application:
     name: todotopiaApi
+  security:
+    authentication: bearer
+    endpoints:
+      login:
+        enabled: true
+        path: "/sign-in"
+    token:
+      enabled: true
+      roles-name: "roles"
+      name-key: "sub"
+      roles-separator:
+      jwt:
+        generator:
+          access-token:
+            expiration: 604800
+        bearer:
+          enabled: true
+          header-name: "Authorization"
+          prefix: "Bearer"
+        signatures:
+          secret:
+            generator:
+              secret: ${TODOTOPIA_API_JWT_TOKEN}
+              jws-algorithm: HS512
+              base64: false
 
 netty:
   default:

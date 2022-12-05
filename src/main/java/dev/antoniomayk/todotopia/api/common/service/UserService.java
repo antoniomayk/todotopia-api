@@ -4,6 +4,7 @@ import dev.antoniomayk.todotopia.api.common.entity.User;
 import dev.antoniomayk.todotopia.api.common.repository.UserRepository;
 import dev.antoniomayk.todotopia.api.common.utils.UserUtils;
 import dev.antoniomayk.todotopia.api.common.validator.UserValidator;
+import dev.antoniomayk.todotopia.api.core.utils.BCryptUtils;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,13 @@ public class UserService {
                 .then(Mono.just(user))
                 .map(UserUtils::encryptUserPassword)
                 .flatMap(userRepository::save);
+    }
+
+    @NotNull
+    public Mono<Boolean> isAuthentic(final @NotNull String email, final @NotNull String plainTextPassword) {
+        return userRepository.findByEmail(email)
+                .flatMap(user -> Mono.just(BCryptUtils.verifyPassword(plainTextPassword, user.getPassword())))
+                .defaultIfEmpty(Boolean.FALSE);
     }
 
 }

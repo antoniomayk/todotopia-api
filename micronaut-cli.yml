@@ -3,4 +3,4 @@ defaultPackage: dev.antoniomayk.todotopia.api
 testFramework: junit
 sourceLanguage: java
 buildTool: gradle
-features: [ annotation-api, app-name, assertj, data, data-jpa, flyway, gradle, http-client, jackson-databind, java, java-application, jdbc-hikari, junit, junit-params, logback, lombok, micronaut-build, mockito, netty-server, postgres, reactor, reactor-http-client, readme, shade, test-resources, testcontainers, vertx-pg-client, yaml ]
+features: [ annotation-api, app-name, assertj, data, data-jpa, flyway, gradle, http-client, jackson-databind, java, java-application, jdbc-hikari, junit, junit-params, logback, lombok, micronaut-build, mockito, netty-server, postgres, reactor, reactor-http-client, readme, security, security-annotations, security-jwt, shade, test-resources, testcontainers, vertx-pg-client, yaml ]

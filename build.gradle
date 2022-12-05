@@ -4,7 +4,7 @@ plugins {
     id("io.micronaut.test-resources") version "3.6.2"
 }
 
-version = "0.1"
+version = "0.2"
 group = "dev.antoniomayk.todotopia.api"
 
 repositories {
@@ -15,10 +15,13 @@ dependencies {
     annotationProcessor("org.projectlombok:lombok")
     annotationProcessor("io.micronaut.data:micronaut-data-processor")
     annotationProcessor("io.micronaut:micronaut-http-validation")
+    annotationProcessor("io.micronaut.security:micronaut-security-annotations")
     compileOnly("org.projectlombok:lombok")
     implementation("at.favre.lib:bcrypt:0.9.0")
     implementation("io.micronaut:micronaut-jackson-databind")
     implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.security:micronaut-security")
+    implementation("io.micronaut.security:micronaut-security-jwt")
     implementation("io.micronaut:micronaut-validation")
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut.flyway:micronaut-flyway")
